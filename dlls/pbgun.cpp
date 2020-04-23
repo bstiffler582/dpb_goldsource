@@ -33,26 +33,41 @@ void CPaintballGun::Holster()
 		WRITE_BYTE(0xFF);
 	MESSAGE_END();
 }
+
 #define Length(a) (sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]))
-void CPaintballGun::PaintballFire(float max)
+void CPaintballGun::PaintballFire(float acc)
 {	
 	UTIL_MakeVectors(player->pev->v_angle);
 	Vector Gunpos=player->GetGunPosition();
 	float sr,su;
 	player->Seed();
 
-	max*=gBarrels[player->m_iBarrel].scale;
+	acc *= gBarrels[player->m_iBarrel].scale;
 	su=Length(player->pev->velocity);
-	if(player->pev->iuser4&U_PRONING) 
-		max+=0.5*su;
-	else if(player->pev->view_ofs[2]>28.0f) 
-		max+=5.0+su*0.25;
+
+	if (player->pev->iuser4 & U_PRONING)
+	{
+		// prone acc
+		acc += 0.5 * su;
+	}
+	else if (player->pev->view_ofs[2] > 28.0f)
+	{
+		// standing acc
+		acc += 5.0 + su * 0.2;
+	}
 	else
-		max+=3.0+su*0.88;
-	if(!(player->pev->flags&FL_ONGROUND))
-		max+=150.0f;
-	sr=player->RandomFloat(-max,max)/1000.0;
-	su=player->RandomFloat(-max,max)/1000.0;
+	{
+		// crouch acc
+		acc += 3.5 + su * 0.15;
+	}
+	if (!(player->pev->flags & FL_ONGROUND))
+	{
+		// off ground acc
+		acc += 150.0f;
+	}
+
+	sr=player->RandomFloat(-acc, acc)/1000.0;
+	su=player->RandomFloat(-acc, acc)/1000.0;
 	vecmul(gpGlobals->v_right,sr);
 	vecmul(gpGlobals->v_up,su);
 	vecadd(gpGlobals->v_forward,gpGlobals->v_right);
@@ -61,6 +76,8 @@ void CPaintballGun::PaintballFire(float max)
 //	FirePaintball(Gunpos,gpGlobals->v_forward,player->entindex());
 	gBallManager.FirePaintball(Gunpos, gpGlobals->v_forward, player->entindex()); //Tony; new
 	PLAYBACK_EVENT_FULL(FEV_NOTHOST,player->edict(),g_usPaintball,0.0f,Gunpos,player->pev->v_angle/*+player->pev->punchangle*/,sr*1000.0f,su*1000.0f,m_iId,player->m_iColor,0,0);
+
+	// decrement ammo
 	if(!gRules->m_bPrestart)
 		m_iHopper--;
 }
@@ -144,14 +161,18 @@ void CPaintballGun::WeaponPostThink()
 		l_lastAttack=l_currAttack; 
 		l_currAttack=gpGlobals->time;
 		PrimaryAttack();
-		if (W_CPS>5)
+		
+		/*if (W_CPS>5)
 		{
 			float decAmmt = 0.01 * W_CPS;
 			if (decAmmt > 0.15)
 				decAmmt = 0.15;
 
 			m_flPrimaryAttack-=decAmmt;
-		}
+		}*/
+
+		// full auto
+		m_bPrimaryAttack = 1;
 	}
 	else if(gRules->m_RoundState && (player->pev->button & IN_ATTACK2) && (!(player->pev->button&IN_RELOAD)) && m_flSecondaryAttack<=0 && m_bSecondaryAttack )
 		SecondaryAttack();

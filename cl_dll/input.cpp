@@ -821,7 +821,7 @@ void DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int activ
 	// set button and flag bits
 	//
 	if(g_iUser1||cmd->upmove||cmd->sidemove||cmd->forwardmove||g_iUser4&IN_PRONE|| (gViewPort && !gViewPort->AllowedToPrintText())||!v_ground)
-		cmd->buttons &= ~(IN_LEANLEFT|IN_LEANRIGHT/*|IN_RELOAD*/); // don't inhibit reload while moving - need models for run_reload, crawl_reload
+		cmd->buttons &= ~(IN_LEANLEFT|IN_LEANRIGHT|IN_RELOAD); // inhibit reload while moving? - would need models for run_reload, crawl_reload
 	if(cmd->buttons&IN_RELOAD)
 		cmd->buttons &= ~(IN_LEANLEFT|IN_LEANRIGHT);
 	if(cmd->buttons&IN_PRONE)

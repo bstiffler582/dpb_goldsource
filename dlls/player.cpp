@@ -225,6 +225,7 @@ void CBasePlayer::ChangeAnim(int anim)
 	int destpos=GetPos(anim);
 	m_bNoGait=0;
 	int newseq;
+
 	if((tmp=UndoAnim[pev->sequence])!=-1) 
 	{
 		// these lines force transition animations for standing/crouching while leaned

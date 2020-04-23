@@ -60,35 +60,46 @@ void ClientWeapon::DefReload(int aidle,int abegin)
 #define W_CPS (((1.0f/(l_currAttack-l_lastAttack))+(1.0f/(l_lastAttack-l_prevAttack)))/2)
 void ClientWeapon::Frame(double dt)
 {
-	if(g_Buttons & IN_DASH&&!m_bGunDown) {
+	if(g_Buttons & IN_DASH&&!m_bGunDown) 
+	{
 		SetAnim(SEMI_HOLSTER);
 		m_bGunDown=1;
-	} else if(m_bGunDown && !(g_Buttons&IN_DASH)) {
+	} 
+	else if(m_bGunDown && !(g_Buttons&IN_DASH)) 
+	{
 		SetAnim(SEMI_DEPLOY);
 		m_bGunDown=0;
-		m_flReload=m_flPrimaryAttack=m_flSecondaryAttack=m_flIdle=1.0;
+
+		// reduced holster/draw delay times
+		m_flReload = m_flPrimaryAttack = m_flSecondaryAttack = m_flIdle= 0.3;
 	}
-	if((g_Buttons & IN_RELOAD) && m_flReload<=0 && gHUD.m_Hopper.m_iHopper<200 && gHUD.m_Hopper.m_iTube )
+	if ((g_Buttons & IN_RELOAD) && m_flReload <= 0 && gHUD.m_Hopper.m_iHopper < 200 && gHUD.m_Hopper.m_iTube)
+	{
 		Reload();
+	}
 	else if(gHUD.m_Timer.m_RoundState&&(g_Buttons & IN_ATTACK ) && (!(g_Buttons&IN_RELOAD)) && m_flPrimaryAttack<=0  && m_bPrimaryAttack && gHUD.m_Hopper.m_iHopper>0)
 	{
 		l_prevAttack=l_lastAttack;
 		l_lastAttack=l_currAttack; 
 		l_currAttack=gEngfuncs.GetClientTime();
 		PrimaryAttack();
-		if (W_CPS>5)
+
+		// not sure what this does but it kills rof timer when in full auto
+		/*if (W_CPS>5)
 		{
 			float decAmmt = 0.01 * W_CPS;
 			if (decAmmt > 0.15)
 				decAmmt = 0.15;
 
 			m_flPrimaryAttack-=decAmmt;
-		}
+		}*/
+
+		// full auto (for testing...)
+		m_bPrimaryAttack = 1;
 	}
 	else if(gHUD.m_Timer.m_RoundState&&(g_Buttons & IN_ATTACK2) && (!(g_Buttons&IN_RELOAD)) && m_flSecondaryAttack<=0 && m_bSecondaryAttack)
 		SecondaryAttack();
-	else if(m_flIdle<=0 && (!(g_Buttons&(IN_ATTACK |IN_ATTACK2))&& 
-		((!(g_Buttons&IN_RELOAD)) || gHUD.m_Hopper.m_iHopper==200|| !gHUD.m_Hopper.m_iTube )))
+	else if(m_flIdle<=0 && (!(g_Buttons&(IN_ATTACK |IN_ATTACK2))&& ((!(g_Buttons&IN_RELOAD)) || gHUD.m_Hopper.m_iHopper==200|| !gHUD.m_Hopper.m_iTube )))
 	{
 		Idle();
 		l_prevAttack = 0.0;
@@ -126,41 +137,54 @@ void ClientWeapon::SetAnim(int anim)
 extern int v_ground;
 extern float v_height;
 extern float v_speed;
-void ClientWeapon::PaintballFire(float max)
+void ClientWeapon::PaintballFire(float acc)
 {
-	float punch;
+	//float punch;
 	float f[3],r[3],u[3];
 	gEngfuncs.pfnAngleVectors(v_angles,f,r,u);
 	float sr,su;
 	DPB_Seed(g_Random);
 	lastshot=curshot;
 	curshot=gEngfuncs.GetClientTime();
-	punch=max*0.3;
-	max*=gBarrels[gHUD.m_Hopper.m_iBarrel].scale;
-	if(g_iUser4&U_PRONING) {
-		max+=0.5*v_speed;
-		punch*=0.1f;
-	} else if(!gEngfuncs.pEventAPI->EV_LocalPlayerDucking()) {
-		max+=5.0f+v_speed*0.25;
-		punch*=0.2f;
-	} else {
-		max+=3.0f+v_speed*0.88;
-		punch*=0.15f;
+
+	//punch=max*0.3;
+
+	acc *= gBarrels[gHUD.m_Hopper.m_iBarrel].scale;
+
+	if(g_iUser4&U_PRONING) 
+	{
+		// prone acc
+		acc += 0.5 * v_speed;
+		//punch*=0.1f;
+	}
+	else if(!gEngfuncs.pEventAPI->EV_LocalPlayerDucking()) 
+	{
+		// standing acc
+		acc += 5.0f + v_speed * 0.2;
+		//punch*=0.2f;
+	} 
+	else 
+	{
+		// crouch acc
+		acc += 3.5f + v_speed * 0.15;
+		//punch*=0.15f;
 	}
 	if(!v_ground) 
-		max+=150.0f;
+		acc += 150.0f;
 
 	//END CALC SHIT
 	
-	sr=DPB_RandomFloat(-max,max)/1000.0;
-	su=DPB_RandomFloat(-max,max)/1000.0;
+	sr=DPB_RandomFloat(-acc, acc)/1000.0;
+	su=DPB_RandomFloat(-acc, acc)/1000.0;
 	vecmul(r,sr);
 	vecmul(u,su);
 	vecadd(f,r);
 	vecadd(f,u);
 	UTIL_Normalize(f);
 	FirePaintball(v_origin,f,gEngfuncs.GetLocalPlayer()->index,gViewPort->m_pConfigMenu->m_Paint->m_iOption);
-	CL_PunchAxes(punch);
+
+	// removed recoil
+	//CL_PunchAxes(punch);
 }
 void UTIL_Normalize(float *v)
 {
