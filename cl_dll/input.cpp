@@ -821,26 +821,22 @@ void DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int activ
 	// set button and flag bits
 	//
 	if(g_iUser1||cmd->upmove||cmd->sidemove||cmd->forwardmove||g_iUser4&IN_PRONE|| (gViewPort && !gViewPort->AllowedToPrintText())||!v_ground)
-		cmd->buttons &= ~(IN_LEANLEFT|IN_LEANRIGHT|IN_RELOAD);
+		cmd->buttons &= ~(IN_LEANLEFT|IN_LEANRIGHT/*|IN_RELOAD*/); // don't inhibit reload while moving - need models for run_reload, crawl_reload
 	if(cmd->buttons&IN_RELOAD)
-    cmd->buttons &= ~(IN_LEANLEFT|IN_LEANRIGHT);
+		cmd->buttons &= ~(IN_LEANLEFT|IN_LEANRIGHT);
 	if(cmd->buttons&IN_PRONE)
 		cmd->buttons&=~IN_DUCK;
 	if(gHUD.m_Hopper.m_flStamina<=30.0f)
 		cmd->buttons&=~IN_JUMP;
  	if(cmd->buttons&IN_JUMP)
 		proned=0;
-	if(cmd->buttons&IN_DASH&&(
-			g_iUser1||gHUD.m_Hopper.m_flStamina<=0.0f||
-			cmd->buttons&IN_PRONE||cmd->buttons&IN_DUCK))
+	if(cmd->buttons&IN_DASH && (g_iUser1 || gHUD.m_Hopper.m_flStamina<=0.0f || cmd->buttons&IN_PRONE /*||cmd->buttons&IN_DUCK*/)) // don't inhibit dash input while ducking (for slide)
 		cmd->buttons &= ~IN_DASH;
 	else if(v_speed<50.0f||!(cmd->buttons&IN_DASH)) 
-		gHUD.m_Hopper.m_flStamina=min(100.0f,
-					gHUD.m_Hopper.m_flStamina+frametime*STAMINA_REST);
+		gHUD.m_Hopper.m_flStamina=min(100.0f, gHUD.m_Hopper.m_flStamina+frametime*STAMINA_REST);
 	else if(cmd->buttons&IN_DASH)
-		gHUD.m_Hopper.m_flStamina=max(0.0,
-					gHUD.m_Hopper.m_flStamina-frametime*STAMINA_DRAIN);
-  if(g_iUser4&U_INPRONE)
+		gHUD.m_Hopper.m_flStamina=max(0.0, gHUD.m_Hopper.m_flStamina-frametime*STAMINA_DRAIN);
+	if(g_iUser4&U_INPRONE)
 		gHUD.m_Hopper.m_flStamina=0.0;
 	// If they're in a modal dialog, ignore the attack button.
 	if(GetClientVoiceMgr()->IsInSquelchMode())

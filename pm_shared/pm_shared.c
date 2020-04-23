@@ -45,11 +45,10 @@ static int pm_shared_initialized = 0;
 
 playermove_t *pmove = NULL;
 
-// Ducking time
-
 #define VEC_PRONE_VIEW -10
 
-#define TIME_TO_DUCK	0.4
+// Ducking time - reduced for better crouch/stand transitions
+#define TIME_TO_DUCK	0.15
 #define VEC_DUCK_HULL_MIN	-18
 #define VEC_DUCK_HULL_MAX	30
 #define VEC_DUCK_VIEW		25
@@ -2075,7 +2074,7 @@ void PM_UnDuck( void )
 		PM_CatagorizePosition();
 	}
 }
-
+static int iSliding = 0;
 void PM_Duck( void )
 {
 	float time;
@@ -2125,9 +2124,23 @@ void PM_Duck( void )
 			PM_FixPlayerCrouchStuck(STUCK_MOVEUP);
 			pmove->view_ofs[2]+=f-pmove->origin[2];
 			PM_CatagorizePosition();
+
+			// if duck triggered while dashing, trigger slide
+			if (pmove->cmd.buttons & IN_DASH)
+				iSliding = 1;
 		}
 
 		time = max( 0.0, ( 1.0 - (float)pmove->flDuckTime / 1000.0 ) );
+
+		// slide logic
+		if (iSliding)
+		{
+			if (pmove->flDuckTime > 250)
+				// set friction low and increment over duck time
+				pmove->movevars->friction = time * 2.5;
+			else iSliding = 0;
+		}
+		else pmove->movevars->friction = 4.0; // default friction value
 		
 		if ( pmove->bInDuck )
 		{

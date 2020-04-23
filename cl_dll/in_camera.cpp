@@ -161,7 +161,9 @@ void DLLEXPORT CAM_Think( void )
 	vec3_t viewangles;
 	if(g_iUser1&&cam_thirdperson)
 		CAM_ToFirstPerson();
-/*	switch( (int) cam_command->value )
+
+	// uncommented to allow for third person view for movement testing
+	switch( (int) cam_command->value )
 	{
 		case CAM_COMMAND_TOTHIRDPERSON:
 			CAM_ToThirdPerson();
@@ -175,7 +177,7 @@ void DLLEXPORT CAM_Think( void )
 		default:
 			break;
 	}
-*/
+
 	if( !cam_thirdperson )
 		return;
 	

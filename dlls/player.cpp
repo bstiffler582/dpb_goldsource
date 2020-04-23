@@ -225,19 +225,28 @@ void CBasePlayer::ChangeAnim(int anim)
 	int destpos=GetPos(anim);
 	m_bNoGait=0;
 	int newseq;
- if((tmp=UndoAnim[pev->sequence])!=-1) {
-		m_iTransition=BaseAnim[GetPos(pev->sequence)];
-		newseq=tmp;
-	} else if(curpos!=destpos) {
+	if((tmp=UndoAnim[pev->sequence])!=-1) 
+	{
+		// these lines force transition animations for standing/crouching while leaned
+		//m_iTransition=BaseAnim[GetPos(pev->sequence)];
+		//newseq=tmp;
+		newseq = anim;
+	} 
+	else if(curpos!=destpos) 
+	{
 		m_iTransition=BaseAnim[destpos];
 		newseq=Trans[curpos][destpos];
 		m_bNoGait=1;
-	} else if((tmp=DoAnim[anim])!=-1) {
+	} 
+	else if((tmp=DoAnim[anim])!=-1) 
+	{
 		m_iTransition=anim;
 		newseq=tmp;
-	} else
+	} 
+	else
 		newseq=anim;
-/*	int trans;
+
+	/*int trans;
 	trans=gTransitions[pev->sequence][anim];
 	if(trans!=-1)
 		anim=m_iTransition=trans;
@@ -245,6 +254,7 @@ void CBasePlayer::ChangeAnim(int anim)
 		m_iTransition=0;
 	else
 		return;*/
+
 	pev->sequence		= newseq;
 	pev->frame			= 0;
 	ResetSequenceInfo();
@@ -614,68 +624,69 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 // Set the activity based on an event or current state
 void CBasePlayer::SetAnimation(int playerAnim )
 {
-	
-	
-	bool nogait=1;
+	bool nogait = 1;
 	if (pev->flags & FL_FROZEN)
 	{
 		pev->sequence = STAND_AIM;
-		pev->gaitsequence=STAND_AIM;
+		pev->gaitsequence = STAND_AIM;
 		return;
 	}
-  int reload = m_weapon ?( m_weapon->m_iReload !=0&&m_weapon->m_iReload!=3): 0;
-	int anim=pev->sequence;
+	int reload = m_weapon ? (m_weapon->m_iReload != 0 && m_weapon->m_iReload != 3) : 0;
+	int anim = pev->sequence;
 	float speed = pev->velocity.Length2D();
-	if(playerAnim==PLAYER_WALK)
+	if (playerAnim == PLAYER_WALK)
 	{
-		if (!(pev->flags&FL_ONGROUND) &&pev->sequence ==STAND_JUMP )//Still jumping
+		if (!(pev->flags & FL_ONGROUND) && pev->sequence == STAND_JUMP)//Still jumping
 		{
-			anim=STAND_JUMP;
-		} else if(pev->iuser4&(U_INPRONE|U_PRONING))
+			anim = STAND_JUMP;
+		}
+		else if (pev->iuser4 & (U_INPRONE | U_PRONING))
 		{
-			if(pev->iuser4&U_LEANLEFT)
-				anim=PRONE_LEFT;
-			else if(pev->iuser4&U_LEANRIGHT)
-				anim=PRONE_RIGHT;
-			else if(reload)
-        anim=PRONE_RELOAD;
-      else {
-				anim=PRONE_AIM;
-				nogait=0;
+			if (pev->iuser4 & U_LEANLEFT)
+				anim = PRONE_LEFT;
+			else if (pev->iuser4 & U_LEANRIGHT)
+				anim = PRONE_RIGHT;
+			else if (reload)
+				anim = PRONE_RELOAD;
+			else
+			{
+				anim = PRONE_AIM;
+				nogait = 0;
 			}
 		}
-		else if(pev->flags&FL_DUCKING||pev->bInDuck)
+		else if (pev->flags & FL_DUCKING || pev->bInDuck)
 		{
-			if(pev->iuser4&U_LEANLEFT)
-				anim=DUCK_LEFT;
-			else if(pev->iuser4&U_LEANRIGHT)
-				anim=DUCK_RIGHT;
-      else if(reload)
-        anim=DUCK_RELOAD;
-			else {
-				anim=DUCK_AIM;
-				nogait=0;
+			if (pev->iuser4 & U_LEANLEFT)
+				anim = DUCK_LEFT;
+			else if (pev->iuser4 & U_LEANRIGHT)
+				anim = DUCK_RIGHT;
+			else if (reload)
+				anim = DUCK_RELOAD;
+			else
+			{
+				anim = DUCK_AIM;
+				nogait = 0;
 			}
 		}
-
 		else
 		{
-      if(!m_weapon)
-				anim=STAND_IDLE;
-			else if(pev->iuser4&U_LEANLEFT)
-				anim=STAND_LEFT;
-			else if(pev->iuser4&U_LEANRIGHT)
-				anim=STAND_RIGHT;
-      else if(reload)
-        anim=STAND_RELOAD;
-			else {
-				anim=STAND_AIM;
-				nogait=0;
+			if (!m_weapon)
+				anim = STAND_IDLE;
+			else if (pev->iuser4 & U_LEANLEFT)
+				anim = STAND_LEFT;
+			else if (pev->iuser4 & U_LEANRIGHT)
+				anim = STAND_RIGHT;
+			else if (reload)
+				anim = STAND_RELOAD;
+			else
+			{
+				anim = STAND_AIM;
+				nogait = 0;
 			}
 		}
 	}
-/*	else if(playerAnim==PLAYER_ATTACK&&pev->sequence!=SWIM&&pev->sequence!=TREADWATER&&pev->sequence!=JUMP)	
-	{	
+	/*else if(playerAnim==PLAYER_ATTACK&&pev->sequence!=SWIM&&pev->sequence!=TREADWATER&&pev->sequence!=JUMP)
+	{
 		if(pev->flags&FL_DUCKING)
 		{
 			if(lean==1)
@@ -695,52 +706,55 @@ void CBasePlayer::SetAnimation(int playerAnim )
 				anim=STAND_SHOOT;
 		}
 	}*/
-	else if(playerAnim==PLAYER_JUMP) 
+	else if (playerAnim == PLAYER_JUMP)
 	{
 		anim = STAND_JUMP;
 	}
-	else if(playerAnim==PLAYER_DIE)
+	else if (playerAnim == PLAYER_DIE)
 	{
 		anim = STAND_OUT;
 	}
-	if(nogait||m_bNoGait)
-		pev->gaitsequence=0;
-  else if(pev->iuser4&(U_INPRONE|U_PRONING)) {
-		if(speed==0)
-			pev->gaitsequence=PRONE_AIM;
-		else
-			pev->gaitsequence=PRONE_CRAWL;
-	}
-	else if (pev->flags&FL_DUCKING)
-	{
-		if ( speed == 0)
-		{
-			pev->gaitsequence	= DUCK_AIM;
-		}
-		else
-		{
-			pev->gaitsequence	= DUCK_CRAWL;
-		}
-	}
 
-	else if ( speed > 220 )
+	if (nogait || m_bNoGait)
+		pev->gaitsequence = 0;
+	else if (pev->iuser4 & (U_INPRONE | U_PRONING)) 
 	{
-		pev->gaitsequence	= STAND_RUN;
+		if (speed == 0)
+			pev->gaitsequence = PRONE_AIM;
+		else
+			pev->gaitsequence = PRONE_CRAWL;
+	}
+	else if (pev->flags & FL_DUCKING)
+	{
+		// duck slide animation
+		if (speed == 0 || pev->flDuckTime > 250)
+		{
+			pev->gaitsequence = DUCK_AIM;
+		}
+		else
+		{
+			pev->gaitsequence = DUCK_CRAWL;
+		}
+	}
+	else if (speed > 220)
+	{
+		pev->gaitsequence = STAND_RUN;
 	}
 	else if (speed > 0)
 	{
-		pev->gaitsequence	= STAND_WALK;
+		pev->gaitsequence = STAND_WALK;
 	}
 	else
 	{
-		pev->gaitsequence	= STAND_AIM;
+		pev->gaitsequence = STAND_AIM;
 	}
 
-	if(pev->sequence<0) {
-		pev->sequence=anim;
-		pev->frame=0;
+	if (pev->sequence < 0) {
+		pev->sequence = anim;
+		pev->frame = 0;
 		ResetSequenceInfo();
-	} else if(pev->sequence!=anim)
+	}
+	else if (pev->sequence != anim)
 		ChangeAnim(anim);
 }
 
