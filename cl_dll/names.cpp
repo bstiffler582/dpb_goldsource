@@ -4,7 +4,8 @@
 #include"event_api.h"
 
 extern float say_colors[16][3];
-extern float curshot,lastshot;
+//extern float curshot,lastshot;
+extern float bps;
 cvar_t *cl_showbps;
 int CHudName::Init() {
 	gHUD.AddHudElem(this);
@@ -39,7 +40,7 @@ int CHudName::Draw(float flTime) {
 		gEngfuncs.pEventAPI->EV_PopPMStates();
 		if(cl_showbps->value) {
 			gEngfuncs.pfnDrawSetTextColor(1.0f,1.0f,1.0f);
-			gEngfuncs.pfnDrawConsoleString(gHUD.m_scrinfo.iWidth-50,10,UTIL_VarArgs("%.1f bps",1.0f/(curshot-lastshot)));
+			gEngfuncs.pfnDrawConsoleString(gHUD.m_scrinfo.iWidth-50,10,UTIL_VarArgs("%.1f bps", bps));
 		}
 	}
 	return 1;

@@ -172,7 +172,7 @@ void CPaintballGun::WeaponPostThink()
 		}*/
 
 		// full auto
-		m_bPrimaryAttack = 1;
+		//m_bPrimaryAttack = 1;
 	}
 	else if(gRules->m_RoundState && (player->pev->button & IN_ATTACK2) && (!(player->pev->button&IN_RELOAD)) && m_flSecondaryAttack<=0 && m_bSecondaryAttack )
 		SecondaryAttack();

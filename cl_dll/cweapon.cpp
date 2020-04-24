@@ -10,7 +10,10 @@
 #include "buy.h"
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_combobox.h"
-float curshot=0,lastshot=0;
+
+float curshot = 0, lastshot = 0, bps = 0, tempRof = 0;
+int consecBps = 0, ramp = 0;
+
 void ClientWeapon::PrimaryAttack()
 {
 }
@@ -57,7 +60,9 @@ void ClientWeapon::DefReload(int aidle,int abegin)
 		m_flReload=10.0f;
 	}
 }
+
 #define W_CPS (((1.0f/(l_currAttack-l_lastAttack))+(1.0f/(l_lastAttack-l_prevAttack)))/2)
+#define BPS_RAMP_THRESH 5.0
 void ClientWeapon::Frame(double dt)
 {
 	if(g_Buttons & IN_DASH&&!m_bGunDown) 
@@ -84,6 +89,19 @@ void ClientWeapon::Frame(double dt)
 		l_currAttack=gEngfuncs.GetClientTime();
 		PrimaryAttack();
 
+		bps = 1.0f / (curshot - lastshot);
+		if (bps >= BPS_RAMP_THRESH)
+			consecBps += 1;
+		else consecBps = 0;
+
+		// NXL ramping
+		if (consecBps >= 3)
+		{
+			gEngfuncs.Con_Printf("Ramping Enabled!");
+			m_flPrimaryAttack = max((1 / 13.0), m_flPrimaryAttack /*need gun's actual rof here*/);
+			m_bPrimaryAttack = 1;
+		}
+
 		// not sure what this does but it kills rof timer when in full auto
 		/*if (W_CPS>5)
 		{
@@ -95,7 +113,7 @@ void ClientWeapon::Frame(double dt)
 		}*/
 
 		// full auto (for testing...)
-		m_bPrimaryAttack = 1;
+		//m_bPrimaryAttack = 1;
 	}
 	else if(gHUD.m_Timer.m_RoundState&&(g_Buttons & IN_ATTACK2) && (!(g_Buttons&IN_RELOAD)) && m_flSecondaryAttack<=0 && m_bSecondaryAttack)
 		SecondaryAttack();
@@ -134,6 +152,7 @@ void ClientWeapon::SetAnim(int anim)
 {
 	gEngfuncs.pfnWeaponAnim(anim,gHUD.m_Hopper.m_iBarrel);
 }
+
 extern int v_ground;
 extern float v_height;
 extern float v_speed;
